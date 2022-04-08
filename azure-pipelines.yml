@@ -35,7 +35,7 @@ stages:
           $(tag)
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Pipeline.Workspace)/aks'
+        targetPath: '$(Pipeline.Workspace)/s/aks'
         artifact: 'manifests'
         publishLocation: 'pipeline'
 
