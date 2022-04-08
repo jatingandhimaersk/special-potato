@@ -24,10 +24,10 @@ namespace Shopping.API.Data
         private static void SeedData(IMongoCollection<Product> productCollection)
         {
             bool existProduct = productCollection.Find(p => true).Any();
-            if (!existProduct)
-            {
+           // if (!existProduct)
+            //{
                 productCollection.InsertManyAsync(GetPreconfiguredProducts());
-            }
+           // }
         }
 
         private static IEnumerable<Product> GetPreconfiguredProducts()
