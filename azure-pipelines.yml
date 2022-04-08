@@ -26,7 +26,7 @@ stages:
       inputs:
         command: buildAndPush
         repository: 'ShoppingApi'
-        dockerfile: '**/Dockerfile'
+        dockerfile: 'Shopping/Shopping.API/Dockerfile'
         containerRegistry: 'traxens-dockerregistry'
         buildContext: $(Build.SourcesDirectory)/Shopping
         tags: |
