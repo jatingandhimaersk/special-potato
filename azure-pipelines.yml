@@ -17,6 +17,7 @@ stages:
   jobs:  
   - job: Build
     displayName: Build job
+
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -24,8 +25,8 @@ stages:
       displayName: Build and push an image to container registry
       inputs:
         command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
+        repository: 'ShoppingApi'
+        dockerfile: '**/Dockerfile'
+        containerRegistry: 'traxens-dockerregistry'
         tags: |
           $(tag)
