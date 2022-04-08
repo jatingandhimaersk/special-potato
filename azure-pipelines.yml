@@ -28,5 +28,6 @@ stages:
         repository: 'ShoppingApi'
         dockerfile: '**/Dockerfile'
         containerRegistry: 'traxens-dockerregistry'
+        buildContext: $(Build.SourcesDirectory)/Shopping/Shopping.API
         tags: |
           $(tag)
