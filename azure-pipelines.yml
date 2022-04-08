@@ -42,6 +42,8 @@ stages:
 - stage: Deploy
   displayName: Deploy to AKS
   dependsOn: Build
+  variables:
+    acrsecretname: testingsacr
   jobs:  
   - job: Deploy
     displayName: Deploy job
@@ -54,6 +56,14 @@ stages:
         buildType: 'current'
         artifactName: 'manifests'
         targetPath: '$(Pipeline.Workspace)/manifests'
+    - task: KubernetesManifest@0
+      inputs:
+        action: 'createSecret'
+        kubernetesServiceConnection: 'kubernetes-traxens-dev'
+        namespace: 'default'
+        secretType: 'dockerRegistry'
+        secretName: '$(acrsecretname)'
+        dockerRegistryEndpoint: 'traxens-dockerregistry'
     - task: KubernetesManifest@0
       inputs:
         action: 'deploy'
