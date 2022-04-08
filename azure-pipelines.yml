@@ -1,0 +1,73 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- main
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+  imageRepoName: 'ShoppingApi'
+  dockerFilePath: 'Shopping/Shopping.API/Dockerfile'
+  dockerRegistryServiceConnection: 'traxens-dockerregistry'
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:  
+  - job: Build
+    displayName: Build job
+
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepoName)
+        dockerfile: $(dockerFilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        buildContext: $(Build.SourcesDirectory)/Shopping
+        tags: |
+          $(tag)
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Pipeline.Workspace)/s/aks'
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
+
+- stage: Deploy
+  displayName: Deploy to AKS
+  dependsOn: Build
+  variables:
+    acrsecretname: testingsacr
+  jobs:  
+  - job: Deploy
+    displayName: Deploy job
+
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'manifests'
+        targetPath: '$(Pipeline.Workspace)/manifests'
+    - task: KubernetesManifest@0
+      inputs:
+        action: 'createSecret'
+        kubernetesServiceConnection: 'kubernetes-traxens-dev'
+        namespace: 'default'
+        secretType: 'dockerRegistry'
+        secretName: '$(acrsecretname)'
+        dockerRegistryEndpoint: 'traxens-dockerregistry'
+    - task: KubernetesManifest@0
+      inputs:
+        action: 'deploy'
+        kubernetesServiceConnection: 'kubernetes-traxens-dev'
+        namespace: 'default'
+        manifests:
+          $(Pipeline.Workspace)/manifests/shoppingapi.yaml
