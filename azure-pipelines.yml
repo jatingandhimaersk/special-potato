@@ -59,4 +59,5 @@ stages:
         action: 'deploy'
         kubernetesServiceConnection: 'kubernetes-traxens-dev'
         namespace: 'default'
-        manifests: 'anything'
+        manifests:
+          $(Pipeline.Workspace)/manifests/shoppingapi.yaml
