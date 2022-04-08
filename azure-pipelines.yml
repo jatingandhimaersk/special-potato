@@ -10,7 +10,9 @@ resources:
 
 variables:
   tag: '$(Build.BuildId)'
-
+  imageRepoName: 'ShoppingApi'
+  dockerFilePath: 'Shopping/Shopping.API/Dockerfile'
+  dockerRegistryServiceConnection: 'traxens-dockerregistry'
 stages:
 - stage: Build
   displayName: Build and push stage
@@ -25,9 +27,32 @@ stages:
       displayName: Build and push an image to container registry
       inputs:
         command: buildAndPush
-        repository: 'ShoppingApi'
-        dockerfile: 'Shopping/Shopping.API/Dockerfile'
-        containerRegistry: 'traxens-dockerregistry'
+        repository: $(imageRepoName)
+        dockerfile: $(dockerFilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
         buildContext: $(Build.SourcesDirectory)/Shopping
         tags: |
           $(tag)
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Pipeline.Workspace)/aks'
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
+
+- stage: Deploy
+  displayName: Deploy to AKS
+  dependsOn: Build
+  jobs:  
+  - job: Deploy
+    displayName: Deploy job
+
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    
+    - task: KubernetesManifest@0
+      inputs:
+        action: 'deploy'
+        kubernetesServiceConnection: 'kubernetes-traxens-dev'
+        namespace: 'default'
+        manifests: 'anything'
